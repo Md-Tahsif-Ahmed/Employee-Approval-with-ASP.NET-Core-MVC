@@ -1,0 +1,172 @@
+﻿@{
+    ViewData["Title"] = "Employee Index";
+}
+
+
+
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<div class="container mt-5">
+    <h1 class="display-4 text-center">Employee List</h1>
+    <table id="employeeTable" class="table table-striped">
+        <thead>
+            <tr>
+                <th>Employee Code</th>
+                <th>Employee Name</th>
+                <th>Phone</th>
+                <th>Address</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model)
+            {
+                <tr>
+                    <td>@employee.EmployeeId</td>
+                    <td>@employee.Name</td>
+                    <td>@employee.Phone</td>
+                    <td>@employee.Address</td>
+                    <td>
+                        @if (employee.Status == 1)
+                        {
+                            <span class="text-success">Approved</span>
+                        }
+                        else
+                        {
+                            <button class="btn btn-warning btn-sm viewBtn" data-id="@employee.EmployeeId" data-name="@employee.Name" data-phone="@employee.Phone" data-address="@employee.Address">View</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal for Viewing Employee -->
+<div id="employeeViewModal" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">View Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>Name:</strong> <span id="viewEmpName"></span></p>
+                <p><strong>Phone:</strong> <span id="viewEmpPhone"></span></p>
+                <p><strong>Address:</strong> <span id="viewEmpAddress"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success" id="approveBtn">Approve</button>
+                <button type="button" class="btn btn-danger" id="deleteBtn">Delete</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Open Modal and Load Employee Data
+        $('#employeeTable').on('click', '.viewBtn', function () {
+            var empId = $(this).data('id');
+            var empName = $(this).data('name');
+            var empPhone = $(this).data('phone');
+            var empAddress = $(this).data('address');
+
+            $('#viewEmpName').text(empName);
+            $('#viewEmpPhone').text(empPhone);
+            $('#viewEmpAddress').text(empAddress);
+
+            // Show the modal
+            $('#employeeViewModal').modal('show');
+
+            // Store the Employee ID for further actions
+            $('#approveBtn').data('id', empId);
+            $('#deleteBtn').data('id', empId);
+        });
+
+        // Approve Employee
+        $('#approveBtn').click(function () {
+            const empId = $(this).data('id');
+
+            $.ajax({
+                url: '/Employee/ApproveEmployee/' + empId,
+                type: 'POST',
+                success: function () {
+                    alert('Employee approved successfully.');
+                    $('#employeeViewModal').modal('hide');
+
+                    // Update the UI: Hide View button and show Approved text
+                    const row = $('#emp-' + empId);
+                    row.find('.viewBtn').hide(); // Hide the View button
+                    row.find('td:last').html('<span class="text-success">Approved</span>'); // Show "Approved" text
+                },
+                error: function () {
+                    alert('Error approving employee.');
+                }
+            });
+        });
+
+        // Delete Employee
+        $('#deleteBtn').click(function () {
+            const empId = $(this).data('id');
+
+            if (confirm('Are you sure you want to delete this employee?')) {
+                $.ajax({
+                    url: '/Employee/DeleteEmployee/' + empId,
+                    type: 'DELETE',
+                    success: function () {
+                        alert('Employee deleted successfully.');
+                        $('#employeeViewModal').modal('hide');
+                        loadEmployees();
+                    },
+                    error: function () {
+                        alert('Error deleting employee.');
+                    }
+                });
+            }
+        });
+
+        // Load Employees
+        function loadEmployees() {
+            $.ajax({
+                url: '/Employee/GetEmployees',
+                type: 'GET',
+                success: function (data) {
+                    $('#employeeTable tbody').empty(); // Clear existing rows
+                    data.forEach(function (employee) {
+                        let statusContent = '';
+
+                        // Check if employee is approved or not
+                        if (employee.status === 1) {
+                            statusContent = '<span class="text-success">Approved</span>';
+                        } else {
+                            statusContent = `<button class="btn btn-warning btn-sm viewBtn" data-id="${employee.employeeId}" data-name="${employee.name}" data-phone="${employee.phone}" data-address="${employee.address}">View</button>`;
+                        }
+
+                        // Append each employee row with the correct data and status
+                        $('#employeeTable tbody').append(`
+                            <tr id="emp-${employee.employeeId}">
+                                <td>${employee.employeeId}</td>
+                                <td>${employee.name}</td>
+                                <td>${employee.phone}</td>
+                                <td>${employee.address}</td>
+                                <td>${statusContent}</td>
+                            </tr>
+                        `);
+                    });
+                },
+                error: function () {
+                    alert('Error loading employees.');
+                }
+            });
+        }
+
+        loadEmployees(); // Initial load of employees
+    });
+</script>
