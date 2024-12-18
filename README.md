@@ -21,12 +21,9 @@ Clone the Repository
 Open the terminal and clone the project:
 
 
-git clone <repository-url>
+git clone https://github.com/Md-Tahsif-Ahmed/Employee-Approval-with-ASP.NET-Core-MVC
 
-cd <project-folder>
-
-Restore Dependencies
-
+ 
 Run the following command to restore required packages:
 
  
@@ -61,16 +58,20 @@ Access the Application
 Open the browser and navigate to the provided URL, e.g., http://localhost:5000.
 
  
-dotnet restore	Restore project dependencies
-dotnet ef database update	Apply EF Core migrations
-dotnet build	Build the project
-dotnet run	Run the application
+dotnet restore	 ->(Restore project dependencies)
+
+dotnet ef database  ->(update	Apply EF Core migrations)
+
+dotnet build	      ->(Build the project)
+
+dotnet run	   ->(Run the application)
+
 Troubleshooting
+
 Ensure MSSQL Server is running.
+
 Install EF CLI tools:
 
 dotnet tool install --global dotnet-ef
-Verify the .NET version:
 
-dotnet --version
-Done! Your project is now running locally 🚀.
+ 
